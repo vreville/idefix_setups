@@ -17,6 +17,7 @@ void UserDefBoundary(Hydro *hydro, int dir, BoundarySide side, real t) {
     IdefixArray4D<real> Vs = hydro->Vs;
     IdefixArray1D<real> x1 = data->x[IDIR];
     IdefixArray1D<real> x2 = data->x[JDIR];
+    IdefixArray1D<real> x2l = data->xl[JDIR];
 
     int ighost = data->nghost[IDIR];
 
@@ -33,7 +34,7 @@ void UserDefBoundary(Hydro *hydro, int dir, BoundarySide side, real t) {
 				   real th = x2(j);
 				   real R=x1(i)*sin(x2(j));
 				   real z=x1(i)*cos(x2(j));
-				   //real vwind = ParkerBC[i] * cs;
+				   real vwind = 0.0;//ParkerWind(r/rc) * cs;
 				   real mu = va_vesc * sqrt(2.);
 				  
 				   Vc(RHO,k,j,i) = 1.0;//*vwind0/(vwind * r * r);
@@ -53,8 +54,8 @@ void UserDefBoundary(Hydro *hydro, int dir, BoundarySide side, real t) {
     hydro->boundary->BoundaryForX2s("UserDefBoundaryBX2s", dir, side,
 				    KOKKOS_LAMBDA(int k, int j, int i){
 
-				      real r=data->x[IDIR](i);
-				      real th=data->xl[JDIR](j);
+				      real r=x1(i);
+				      real th=x2l(j);
 				      real mu = va_vesc * sqrt(2.);
 
 				      Vs(BX2s,k,j,i) = mu * sin(th)/(r*r*r);
@@ -89,14 +90,13 @@ void Setup::InitFlow(DataBlock &data) {
   // Make vector potential
   IdefixHostArray4D<real> A = IdefixHostArray4D<real>("Setup_VectorPotential", 3, data.np_tot[KDIR], data.np_tot[JDIR], data.np_tot[IDIR]);
   
-  real x,y,z;
-  
-  real vphi,f,r,th;
+  real r,th;
   real cs=cs_vescGlob*sqrt(2.);
   real rc = 0.25 / (cs_vescGlob*cs_vescGlob);
   real vwind0 = ParkerWind(1./rc) * cs;
 
   printf("vwind0 = %f, %f\n", vwind0, ParkerWind(1.0118401/rc)*cs);
+  printf("ighost=%d\n", d.nghost[IDIR]);
   real PonRho = cs*cs;
   real mu = va_vescGlob * sqrt(2.);    
 
