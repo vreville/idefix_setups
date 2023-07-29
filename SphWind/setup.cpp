@@ -25,19 +25,20 @@ void UserDefBoundary(Hydro *hydro, int dir, BoundarySide side, real t) {
     real vwind0 = ParkerWind(1./rc) * cs;
     real PonRho = cs*cs;
     real va_vesc = va_vescGlob;
-       
+    //real ParkerBC[ighost];
+
     hydro->boundary->BoundaryFor("UserDefBoundary", dir, side,
 				 KOKKOS_LAMBDA (int k, int j, int i) {
 				   real r = x1(i);
 				   real th = x2(j);
 				   real R=x1(i)*sin(x2(j));
 				   real z=x1(i)*cos(x2(j));
-				   real vwind = ParkerWind(r/rc) * cs;
+				   //real vwind = ParkerBC[i] * cs;
 				   real mu = va_vesc * sqrt(2.);
-				   
-				   Vc(RHO,k,j,i) = 1.0*vwind0/(vwind * r * r);
+				  
+				   Vc(RHO,k,j,i) = 1.0;//*vwind0/(vwind * r * r);
 				   Vc(PRS,k,j,i) = PonRho * Vc(RHO, k, j, i);
-				   Vc(VX1,k,j,i) = vwind;
+				   Vc(VX1,k,j,i) = 0.0;//vwind;
 				   Vc(VX2,k,j,i) = 0.0;
 				   Vc(VX3,k,j,i) = 0.0;
 				   Vc(BX1,k,j,i) = 2 * mu * cos(th)/(r*r*r);
